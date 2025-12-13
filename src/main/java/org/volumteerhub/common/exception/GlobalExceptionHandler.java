@@ -5,10 +5,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.volumteerhub.dto.ErrorResponse;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * Handles handleMethodNotSupportedException and returns HTTP 405 METHOD NOT ALLOWED.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException e, WebRequest request) {
+
+        HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
+
+        String[] supportedMethods = e.getSupportedMethods();
+        String allowedMethodsString = null;
+        if (supportedMethods != null && supportedMethods.length > 0) {
+            allowedMethodsString = String.format(" Allowed methods: [%s].", String.join(",", supportedMethods));
+        }
+
+        String detailMessage = String.format(
+                "Request method '%s' not supported for this endpoint.%s",
+                e.getMethod(),
+                allowedMethodsString
+        );
+
+        ErrorResponse errorResponse = ErrorResponse.build(
+                status,
+                detailMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
 
     /**
      * Handles ResourceNotFoundException and returns HTTP 404 NOT FOUND.
@@ -22,7 +53,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.build(
                 status,
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "") // Extracts the request path
+                request.getDescription(false).replace("uri=", "")
         );
 
         return new ResponseEntity<>(errorResponse, status);
@@ -40,7 +71,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.build(
                 status,
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "") // Extracts the request path
+                request.getDescription(false).replace("uri=", "")
         );
 
         return new ResponseEntity<>(errorResponse, status);
