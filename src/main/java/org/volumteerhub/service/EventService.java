@@ -4,18 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.volumteerhub.dto.EventDto;
 import org.volumteerhub.common.exception.ResourceNotFoundException;
 import org.volumteerhub.common.exception.UnauthorizedAccessException;
 import org.volumteerhub.common.EventStatus;
-import org.volumteerhub.common.UserRole;
 import org.volumteerhub.model.Event;
 import org.volumteerhub.model.User;
 import org.volumteerhub.repository.EventRepository;
-import org.volumteerhub.repository.UserRepository;
 import org.volumteerhub.specification.EventSpecifications;
 
 import java.util.UUID;
@@ -25,21 +21,7 @@ import java.util.UUID;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
-
-    private User getCurrentAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedAccessException("User is not authenticated.");
-        }
-        String username = authentication.getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
-    }
-
-    private boolean isCurrentUserAdmin(User user) {
-        return user.getRole() == UserRole.ADMIN;
-    }
+    private final UserService userService;
 
     private void validateOwnership(Event event, User currentUser) {
         if (!event.getOwner().equals(currentUser)) {
@@ -69,7 +51,7 @@ public class EventService {
 
     // CREATE
     public EventDto create(EventDto dto) {
-        User owner = getCurrentAuthenticatedUser();
+        User owner = userService.getCurrentAuthenticatedUser();
 
         Event event = Event.builder()
                 .owner(owner)
@@ -87,10 +69,10 @@ public class EventService {
     // READ BY ID
     public EventDto get(UUID id) {
         Event event = findEventById(id);
-        User currentUser = getCurrentAuthenticatedUser();
+        User currentUser = userService.getCurrentAuthenticatedUser();
 
         if (event.getStatus() != EventStatus.APPROVED) {
-            if (!isCurrentUserAdmin(currentUser)) {
+            if (!userService.isCurrentUserAdmin()) {
                 validateOwnership(event, currentUser);
             }
         }
@@ -99,7 +81,7 @@ public class EventService {
 
     // LIST + FILTER + PAGE
     public Page<EventDto> list(EventStatus status, UUID ownerId, String search, Pageable pageable) {
-        User currentUser = getCurrentAuthenticatedUser();
+        User currentUser = userService.getCurrentAuthenticatedUser();
 
         Specification<Event> baseFilter = Specification.allOf(
                 EventSpecifications.hasStatus(status),
@@ -108,7 +90,7 @@ public class EventService {
         );
 
         // Rule 1: Admin can see everything
-        if (isCurrentUserAdmin(currentUser)) {
+        if (userService.isCurrentUserAdmin()) {
             return eventRepository.findAll(baseFilter, pageable).map(this::toDto);
         }
 
@@ -134,7 +116,7 @@ public class EventService {
     // UPDATE
     public EventDto update(UUID id, EventDto dto) {
         Event event = findEventById(id);
-        User currentUser = getCurrentAuthenticatedUser();
+        User currentUser = userService.getCurrentAuthenticatedUser();
         validateOwnership(event, currentUser);
 
         if (dto.getName() != null) event.setName(dto.getName());
@@ -149,7 +131,7 @@ public class EventService {
     // DELETE
     public void delete(UUID id) {
         Event event = findEventById(id);
-        User currentUser = getCurrentAuthenticatedUser();
+        User currentUser = userService.getCurrentAuthenticatedUser();
         validateOwnership(event, currentUser);
 
         eventRepository.deleteById(id);
@@ -158,7 +140,7 @@ public class EventService {
     // Submit to admin
     public EventDto submit(UUID id) {
         Event event = findEventById(id);
-        User currentUser = getCurrentAuthenticatedUser();
+        User currentUser = userService.getCurrentAuthenticatedUser();
         validateOwnership(event, currentUser);
 
         if (event.getStatus() == EventStatus.DRAFT || event.getStatus() == EventStatus.REJECTED) {
@@ -183,8 +165,7 @@ public class EventService {
 
     // Approve
     public EventDto approve(UUID id) {
-        User currentUser = getCurrentAuthenticatedUser();
-        if (!isCurrentUserAdmin(currentUser)) {
+        if (!userService.isCurrentUserAdmin()) {
             throw new UnauthorizedAccessException("Admin only operation.");
         }
 
@@ -193,8 +174,7 @@ public class EventService {
 
     // Reject
     public EventDto reject(UUID id) {
-        User currentUser = getCurrentAuthenticatedUser();
-        if (!isCurrentUserAdmin(currentUser)) {
+        if (!userService.isCurrentUserAdmin()) {
             throw new UnauthorizedAccessException("Admin only operation.");
         }
 

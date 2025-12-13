@@ -1,13 +1,17 @@
 package org.volumteerhub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.volumteerhub.common.UserRole;
+import org.volumteerhub.common.exception.ResourceNotFoundException;
+import org.volumteerhub.common.exception.UnauthorizedAccessException;
 import org.volumteerhub.dto.CreateUserRequest;
 import org.volumteerhub.dto.UserResponse;
 import org.volumteerhub.model.User;
@@ -54,11 +58,34 @@ public class UserService implements UserDetailsService {
                 new SimpleGrantedAuthority(role)
         );
 
-        // 4. Return the Spring Security User object
+        // Return the Spring Security User object
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPasswordHash(),
                 authorities
         );
+    }
+
+    public User getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedAccessException("User is not authenticated.");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+    }
+
+    public boolean isCurrentUserAdmin() {
+
+        User currentUser = this.getCurrentAuthenticatedUser();
+
+        return currentUser.getRole() == UserRole.ADMIN;
+    }
+
+    public void validateOwnerOrAdmin(User resourceOwner, User currentUser) {
+        if (!isCurrentUserAdmin() && !resourceOwner.equals(currentUser)) {
+            throw new UnauthorizedAccessException("Operation not permitted.");
+        }
     }
 }
