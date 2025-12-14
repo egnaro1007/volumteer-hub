@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.volumteerhub.common.ReactionType;
+import org.volumteerhub.common.enumeration.ReactionType;
 
 import java.time.Instant;
 import java.util.UUID;

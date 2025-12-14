@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.volumteerhub.common.EventStatus;
+import org.volumteerhub.common.enumeration.EventStatus;
 import org.volumteerhub.common.validation.OnCreate;
 import org.volumteerhub.common.validation.OnUpdate;
 import org.volumteerhub.dto.EventDto;

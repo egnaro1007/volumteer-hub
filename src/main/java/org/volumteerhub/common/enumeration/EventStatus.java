@@ -1,4 +1,4 @@
-package org.volumteerhub.common;
+package org.volumteerhub.common.enumeration;
 
 public enum EventStatus {
     DRAFT,

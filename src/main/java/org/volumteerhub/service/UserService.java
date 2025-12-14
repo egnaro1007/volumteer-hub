@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.volumteerhub.common.UserRole;
+import org.volumteerhub.common.enumeration.UserRole;
 import org.volumteerhub.common.exception.ResourceNotFoundException;
 import org.volumteerhub.common.exception.UnauthorizedAccessException;
 import org.volumteerhub.dto.CreateUserRequest;

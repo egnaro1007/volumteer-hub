@@ -5,7 +5,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
-import org.volumteerhub.common.RegistrationStatus;
+import org.volumteerhub.common.enumeration.RegistrationStatus;
 import org.volumteerhub.common.validation.OnCreate;
 
 import java.util.UUID;

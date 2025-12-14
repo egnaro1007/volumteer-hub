@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.volumteerhub.dto.EventDto;
 import org.volumteerhub.common.exception.ResourceNotFoundException;
 import org.volumteerhub.common.exception.UnauthorizedAccessException;
-import org.volumteerhub.common.EventStatus;
+import org.volumteerhub.common.enumeration.EventStatus;
 import org.volumteerhub.model.Event;
 import org.volumteerhub.model.User;
 import org.volumteerhub.repository.EventRepository;

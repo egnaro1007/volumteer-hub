@@ -2,7 +2,7 @@ package org.volumteerhub.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.volumteerhub.common.RegistrationStatus;
+import org.volumteerhub.common.enumeration.RegistrationStatus;
 import org.volumteerhub.model.Event;
 import org.volumteerhub.model.Registration;
 import org.volumteerhub.model.User;

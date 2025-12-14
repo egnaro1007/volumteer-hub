@@ -1,6 +1,6 @@
 package org.volumteerhub.repository;
 
-import org.volumteerhub.common.ReactionType;
+import org.volumteerhub.common.enumeration.ReactionType;
 
 public interface ReactionCountProjection {
     ReactionType getReactionType();

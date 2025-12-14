@@ -2,7 +2,7 @@ package org.volumteerhub.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.volumteerhub.common.UserRole;
+import org.volumteerhub.common.enumeration.UserRole;
 
 import java.time.Instant;
 import java.util.UUID;

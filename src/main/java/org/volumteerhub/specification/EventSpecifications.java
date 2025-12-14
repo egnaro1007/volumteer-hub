@@ -1,7 +1,7 @@
 package org.volumteerhub.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import org.volumteerhub.common.EventStatus;
+import org.volumteerhub.common.enumeration.EventStatus;
 import org.volumteerhub.model.Event;
 
 import java.util.UUID;
