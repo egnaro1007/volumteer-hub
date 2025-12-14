@@ -6,15 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.volumteerhub.common.enumeration.ReactionType;
 import org.volumteerhub.common.exception.ResourceNotFoundException;
 import org.volumteerhub.dto.PostDto;
-import org.volumteerhub.model.Event;
-import org.volumteerhub.model.Post;
-import org.volumteerhub.model.PostMedia;
-import org.volumteerhub.model.User;
+import org.volumteerhub.model.*;
 import org.volumteerhub.repository.EventRepository;
 import org.volumteerhub.repository.PostMediaRepository;
 import org.volumteerhub.repository.PostRepository;
+import org.volumteerhub.repository.ReactionRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final EventRepository eventRepository;
     private final PostMediaRepository postMediaRepository;
+    private final ReactionRepository reactionRepository;
     private final UserService userService;
     private final StorageService storageService;
 
@@ -148,5 +148,68 @@ public class PostService {
         }
 
         postRepository.delete(post);
+    }
+
+
+    // REACTION
+    /**
+     * Applies a new reaction or updates an existing one for the current user.
+     */
+    @Transactional
+    public void react(UUID postId, ReactionType newReactionType) {
+        if (newReactionType == ReactionType.NONE) {
+            // Treat NONE as a request to delete the reaction
+            this.deleteReaction(postId);
+            return;
+        }
+
+        User currentUser = userService.getCurrentAuthenticatedUser();
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
+
+        // 1. Check for existing reaction
+        reactionRepository.findByPostIdAndUserId(postId, currentUser.getId())
+                .ifPresentOrElse(
+                        // 2. Update existing reaction
+                        reaction -> {
+                            reaction.setReactionType(newReactionType);
+                            reactionRepository.save(reaction);
+                        },
+                        // 3. Create new reaction
+                        () -> {
+                            PostReaction reaction = PostReaction.builder()
+                                    .post(post)
+                                    .user(currentUser)
+                                    .reactionType(newReactionType)
+                                    .build();
+                            reactionRepository.save(reaction);
+                        }
+                );
+    }
+
+    /**
+     * Gets the current user's reaction from a post.
+     */
+    public ReactionType getReaction(UUID postId) {
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
+        postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
+
+        return reactionRepository.findByPostIdAndUserId(postId, currentUser.getId())
+                .map(PostReaction::getReactionType)
+                .orElse(ReactionType.NONE);
+    }
+
+    /**
+     * Removes the current user's reaction from a post.
+     */
+    @Transactional
+    public void deleteReaction(UUID postId) {
+        User currentUser = userService.getCurrentAuthenticatedUser();
+
+        reactionRepository.findByPostIdAndUserId(postId, currentUser.getId())
+                .ifPresent(reactionRepository::delete);
+
     }
 }

@@ -10,11 +10,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.volumteerhub.common.enumeration.ReactionType;
+import org.volumteerhub.common.exception.BadRequestException;
 import org.volumteerhub.common.validation.OnCreate;
 import org.volumteerhub.common.validation.OnUpdate;
 import org.volumteerhub.dto.PostDto;
 import org.volumteerhub.service.PostService;
+import org.volumteerhub.util.StringUtil;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -74,5 +79,39 @@ public class PostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable UUID postId) {
         postService.delete(postId);
+    }
+
+
+    // REACT
+    @PostMapping("/posts/{postId}/reaction/{reactionType}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reactToPost(
+            @PathVariable UUID postId,
+            @PathVariable String reactionType) {
+
+        ReactionType newReactionType;
+        try {
+            newReactionType = StringUtil.getEnumFromString(reactionType, ReactionType.class);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid reaction type: " + reactionType);
+        }
+
+        postService.react(postId, newReactionType);
+    }
+
+    // GET REACTION
+    @GetMapping("/posts/{postId}/reaction")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Map<String, String>> getReaction(@PathVariable UUID postId) {
+        ReactionType reactionType = postService.getReaction(postId);
+        Map<String, String> response = Collections.singletonMap("reaction", reactionType.toString().toLowerCase());
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE REACTION
+    @DeleteMapping("/posts/{postId}/reaction")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeReaction(@PathVariable UUID postId) {
+        postService.deleteReaction(postId);
     }
 }
