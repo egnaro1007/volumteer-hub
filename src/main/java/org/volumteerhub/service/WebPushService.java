@@ -9,8 +9,8 @@ import nl.martijndwars.webpush.Subscription;
 
 import org.apache.http.HttpResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.volumteerhub.config.VapidConfig;
 import org.volumteerhub.model.PushSubscription;
 import org.volumteerhub.model.User;
 import org.volumteerhub.repository.PushSubscriptionRepository;
@@ -24,23 +24,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebPushService {
 
-    @Value("${vapid.public.key}")
-    private String publicKey;
-
-    @Value("${vapid.private.key}")
-    private String privateKey;
-
-    @Value("${vapid.subject}")
-    private String subject;
-
     private final PushSubscriptionRepository pushSubscriptionRepository;
     private final UserService userService;
-    private PushService pushService;
+    private final VapidConfig vapidConfig;
+    private PushService pushService = null;
 
     @PostConstruct
     private void init() throws Exception {
+        boolean isEnable = vapidConfig.isEnabled();
+        if (!isEnable) {
+            log.warn("Web Push Service is disabled");
+            return;
+        }
         Security.addProvider(new BouncyCastleProvider());
-        pushService = new PushService(publicKey, privateKey, subject);
+        pushService = new PushService(
+                vapidConfig.getPublicKey(),
+                vapidConfig.getPrivateKey(),
+                vapidConfig.getSubject()
+        );
     }
 
     public void subscribe(Subscription subscription) {
@@ -101,6 +102,9 @@ public class WebPushService {
     }
 
     private void sendToBrowser(Subscription subscription, String payload) {
+        if (pushService != null) {
+            return;
+        }
         try {
             Notification notification = new Notification(subscription, payload);
             HttpResponse response = pushService.send(notification);
