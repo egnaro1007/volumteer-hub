@@ -3,7 +3,11 @@ package org.volumteerhub.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.volumteerhub.common.enumeration.UserRole;
@@ -14,6 +18,9 @@ import org.volumteerhub.dto.UserResponse;
 import org.volumteerhub.service.UserService;
 
 import java.util.UUID;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,12 +35,20 @@ public class UserController {
     }
 
     @GetMapping
-    public Page<UserResponse> listUsers(
+    public ResponseEntity<PagedModel<EntityModel<UserResponse>>> listUsers(
             @RequestParam(required = false) UserRole role,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) String username,
-            Pageable pageable) {
-        return userService.list(role, isActive, username, pageable);
+            Pageable pageable,
+            PagedResourcesAssembler<UserResponse> assembler) {
+
+        Page<UserResponse> page = userService.list(role, isActive, username, pageable);
+
+        PagedModel<EntityModel<UserResponse>> resources = assembler.toModel(page, user -> EntityModel.of(user,
+                linkTo(methodOn(UserController.class).getUser(user.getId())).withSelfRel()
+        ));
+
+        return ResponseEntity.ok(resources);
     }
 
     @GetMapping("/{id}")
