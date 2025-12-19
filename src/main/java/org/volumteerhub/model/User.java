@@ -46,6 +46,9 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PushSubscription> pushSubscriptions;
 

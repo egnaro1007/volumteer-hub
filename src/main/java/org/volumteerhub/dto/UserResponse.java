@@ -15,5 +15,6 @@ public class UserResponse {
     private String lastname;
     private String username;
     private UserRole role;
+    private Boolean isActive;
     private Instant createdAt;
 }
