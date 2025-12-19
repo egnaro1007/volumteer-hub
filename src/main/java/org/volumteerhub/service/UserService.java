@@ -88,7 +88,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll(spec, pageable).map(this::toDto);
     }
 
-    // UPDATE - Owner or Admin only
+    // UPDATE
     public UserResponse update(UUID id, CreateUserRequest req) {
         User userToUpdate = findUserById(id);
         User currentUser = getCurrentAuthenticatedUser();
@@ -111,6 +111,21 @@ public class UserService implements UserDetailsService {
         userRepository.delete(currentUser);
     }
 
+
+    // === ADMIN === //
+
+    // Activate/deactivate user
+    public UserResponse setActiveStageUser(UUID id, Boolean active) {
+        if (!isCurrentUserAdmin()) {
+            throw new UnauthorizedAccessException("Admin only operation.");
+        }
+
+        User user = findUserById(id);
+        user.setIsActive(active);
+        userRepository.save(user);
+
+        return toDto(user);
+    }
 
     // UTILS
 
