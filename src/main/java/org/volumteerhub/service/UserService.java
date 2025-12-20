@@ -77,6 +77,12 @@ public class UserService implements UserDetailsService {
         return toDto(findUserById(id));
     }
 
+    // MYSELF
+    public UserResponse getMyself() {
+        UUID currentUserId = getCurrentAuthenticatedUser().getId();
+        return this.get(currentUserId);
+    }
+
     // LIST + FILTER (Following EventService pattern)
     public Page<UserResponse> list(UserRole role, Boolean isActive, String username, Pageable pageable) {
         Specification<User> spec = Specification.allOf(

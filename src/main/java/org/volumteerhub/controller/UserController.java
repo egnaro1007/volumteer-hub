@@ -45,15 +45,19 @@ public class UserController {
         Page<UserResponse> page = userService.list(role, isActive, username, pageable);
 
         PagedModel<EntityModel<UserResponse>> resources = assembler.toModel(page, user -> EntityModel.of(user,
-                linkTo(methodOn(UserController.class).getUser(user.getId())).withSelfRel()
+                linkTo(methodOn(UserController.class).getUser(user.getId().toString())).withSelfRel()
         ));
 
         return ResponseEntity.ok(resources);
     }
 
     @GetMapping("/{id}")
-    public UserResponse getUser(@PathVariable UUID id) {
-        return userService.get(id);
+    public UserResponse getUser(@PathVariable String id) {
+        if (id.equals("myself")) {
+            return userService.getMyself();
+        }
+        UUID userId = UUID.fromString(id);
+        return userService.get(userId);
     }
 
     @PutMapping("/{id}")
