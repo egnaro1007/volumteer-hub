@@ -37,11 +37,11 @@ public class EventService {
 
 
     private EventDto toDto(Event event) {
-        // Use Lombok's @Builder on DTO or a proper mapper for cleaner code
         EventDto dto = new EventDto();
         dto.setId(event.getId());
         dto.setName(event.getName());
         dto.setDescription(event.getDescription());
+        dto.setLocation(event.getLocation());
         dto.setDateDeadline(event.getDateDeadline());
         dto.setStartDate(event.getStartDate());
         dto.setEndDate(event.getEndDate());
@@ -58,6 +58,7 @@ public class EventService {
                 .owner(owner)
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .location(dto.getLocation())
                 .dateDeadline(dto.getDateDeadline())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
@@ -122,6 +123,7 @@ public class EventService {
 
         if (dto.getName() != null) event.setName(dto.getName());
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
+        if (dto.getLocation() != null) event.setLocation(dto.getLocation());
         if (dto.getDateDeadline() != null) event.setDateDeadline(dto.getDateDeadline());
         if (dto.getStartDate() != null) event.setStartDate(dto.getStartDate());
         if (dto.getEndDate() != null) event.setEndDate(dto.getEndDate());

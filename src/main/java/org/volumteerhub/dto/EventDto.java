@@ -25,6 +25,8 @@ public class EventDto {
 
     private String description;
 
+    private String location;
+
     @NotNull(groups = OnCreate.class)
     private Instant dateDeadline;
 
