@@ -133,6 +133,19 @@ public class UserService implements UserDetailsService {
         return toDto(user);
     }
 
+    // Change role
+    public UserResponse setUserRole(UUID id, UserRole role) {
+        if (!isCurrentUserAdmin()) {
+            throw new UnauthorizedAccessException("Admin only operation.");
+        }
+
+        User user = findUserById(id);
+        user.setRole(role);
+        userRepository.save(user);
+
+        return toDto(user);
+    }
+
     // UTILS
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
