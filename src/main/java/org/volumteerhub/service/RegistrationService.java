@@ -28,6 +28,7 @@ public class RegistrationService {
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final UserService securityService;
+    private final NotificationDispatcherService notificationDispatcherService;
 
     // --- MAPPERS ---
 
@@ -134,6 +135,13 @@ public class RegistrationService {
         }
 
         Optional<Registration> registration = registrationRepository.getByUserAndEvent(volunteer, event);
+
+        notificationDispatcherService.notifyEventOwner(
+                event,
+                "Thành viên mới",
+                "Có thành viên mới đăng ký tham gia sự kiện của bạn, bấm để xem thêm.",
+                "/event/" + eventId
+        );
 
         return registration.map(this::toDto)
                 .orElseGet(() -> {
