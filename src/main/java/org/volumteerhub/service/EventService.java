@@ -47,6 +47,12 @@ public class EventService {
         dto.setEndDate(event.getEndDate());
         dto.setStatus(event.getStatus());
         dto.setOwnerId(event.getOwner().getId());
+
+        if (event.getOwner() != null) {
+            String ownerName = event.getOwner().getFirstname() + " " + event.getOwner().getLastname();
+            dto.setOwnerName(ownerName);
+        }
+
         return dto;
     }
 

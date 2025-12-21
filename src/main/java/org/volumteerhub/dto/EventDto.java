@@ -38,6 +38,8 @@ public class EventDto {
 
     private UUID ownerId;
 
+    private String ownerName;
+
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 }
